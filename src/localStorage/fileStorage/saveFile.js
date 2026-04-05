@@ -1,0 +1,99 @@
+import hashFile from './hashFile'
+import { nanoid } from 'nanoid'
+import { init } from '../indexeddb'
+import drawTransparentPattern from 'checkerboardjs'
+
+export const mimeTypes = {
+  image: ['image/png', 'image/jpeg', 'image/gif'],
+  audio: ['audio/mpeg', 'audio/wav', 'audio/ogg'],
+  video: ['video/mp4']
+}
+export const allowedFileTypes = [...mimeTypes.image, ...mimeTypes.audio, ...mimeTypes.video]
+export async function saveFile(blob, packUUID) {
+  if(!allowedFileTypes.includes(blob.type)) {
+    throw 'File mime-type is not supported'
+  }
+  const fileName = blob.filename ?? blob.name ?? 'Без названия'
+
+  const db = init()
+  const hash = await hashFile(blob)
+
+  let results = await db.files.where({ packUUID, hash }).toArray()
+  if(results.length) return results[0].fileURI
+
+  const type = Object.entries(mimeTypes).find(
+    ([,mimeType]) => mimeType.some(type => type === blob.type)
+  )[0]
+
+  const fileURI = nanoid()
+  const fileObject = {
+    fileURI,
+    type,
+    blob,
+    size: blob.size,
+    fileName,
+    hash,
+    packUUID,
+    addedAt: Date.now()
+  }
+
+  switch(type) {
+    case 'image':
+      fileObject.miniature = await generateMiniature(blob)
+      break
+  }
+
+  await db.files.put(fileObject)
+  return fileURI
+}
+
+export async function saveFileAsURL(url, file, packUUID) {
+  const db = init()
+
+  let results = await db.files.where({ packUUID, url }).toArray()
+  if(results.length) return results[0].fileURI
+
+  const foundMimeEntry = Object.entries(mimeTypes).find(
+    ([,mimeType]) => mimeType.some(type => type === file.type)
+  )
+  const type = (file.type === 'unknown' || !foundMimeEntry)
+    ? 'unknown'
+    : foundMimeEntry[0]
+
+  const fileURI = nanoid()
+  const fileObject = {
+    fileURI,
+    type,
+    url,
+    size: file.size,
+    fileName: file.name,
+    packUUID,
+    addedAt: Date.now()
+  }
+
+  await db.files.put(fileObject)
+  return fileURI
+}
+
+const maxSize = 100
+async function generateMiniature(blob) {
+  const img = document.createElement('img')
+  const src = URL.createObjectURL(blob)
+  img.src = src
+  await new Promise(resolve => img.onload = resolve)
+  const { width, height } = img
+  const size = Math.min(width, height, maxSize)
+  let newWidth = size, newHeight = size
+  if(width > height) newHeight = newWidth*height/ width
+  else newWidth = newHeight*width/height
+
+  const canvas = document.createElement('canvas')
+  canvas.width = newWidth
+  canvas.height = newHeight
+  drawTransparentPattern(canvas)
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+  const miniature = await new Promise(resolve => canvas.toBlob(resolve))
+  URL.revokeObjectURL(src)
+  return miniature
+}

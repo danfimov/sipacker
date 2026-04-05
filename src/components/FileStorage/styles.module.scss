@@ -1,0 +1,290 @@
+@import '../../consts.scss';
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.link {
+  width: 400px;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: middle;
+  margin-left: 5px;
+}
+
+.dialog {
+  padding: 0 !important;
+
+  @media screen and (min-width: 769px) {
+    width: 600px;
+  }
+
+  .tabs {
+    border-bottom: 1px solid rgba(#ffffff, 0.1);
+  }
+
+  .files {
+    display: flex;
+    height: 400px;
+
+    .filters {
+      margin: 20px;
+      max-width: 135px;
+
+      .text {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .checkbox {
+        user-select: none;
+        word-break: break-word;
+      }
+    }
+
+    .list {
+      flex: 1;
+      padding-top: 5px;
+      max-height: 400px;
+      box-shadow: inset 0 0 6px 0 rgba(0, 0, 0, 0.5);
+
+      @media screen and (max-width: 768px) {
+        // flex: none;
+        // flex: 1;
+        // width: 100%;
+      }
+
+      .content {
+        overflow-y: auto;
+        height: 100%;
+        padding: 20px;
+        padding-top: 0;
+        width: 100%;
+
+        .packDivider {
+          position: sticky;
+          top: 0;
+          width: 100%;
+          padding: 10px 0;
+          background-color: #383838;
+          z-index: 5;
+        }
+
+        .grid {
+          margin: 0;
+          width: 100%;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          grid-column-gap: 20px;
+          grid-row-gap: 20px;
+
+          @media screen and (max-width: 768px) {
+            grid-template-columns: repeat(1, 1fr);
+          }
+
+          .item {
+            height: 140px;
+            min-width: 150px;
+
+            &.disabled {
+              pointer-events: none;
+              opacity: 0.35;
+              user-select: none;
+            }
+
+            .itemInner {
+              height: 100%;
+              border-radius: 10px;
+              background-color: #2b2b2b;
+              display: flex;
+              flex-direction: column;
+              overflow: hidden;
+              border: 2px solid #2b2b2b;
+              transition: border 200ms;
+              cursor: pointer;
+              position: relative;
+
+              &:hover {
+                border: 2px solid $materialColor;
+              }
+
+              .preview {
+                flex: 1;
+                position: relative;
+                overflow: hidden;
+
+                .video {
+                  width: 100%;
+                  height: 100%;
+                }
+
+                .foreground,
+                .background {
+                  width: 100%;
+                  height: 100%;
+                  position: absolute;
+                  pointer-events: none;
+                }
+
+                .foreground {
+                  object-fit: contain;
+                  z-index: 2;
+                }
+
+                .background {
+                  object-fit: cover;
+                  z-index: 1;
+                  filter: blur(10px);
+                }
+              }
+
+              .fileName {
+                width: 100%;
+                padding: 10px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                &:hover {
+                  overflow: auto;
+                  text-overflow: inherit;
+                }
+              }
+
+              .buttons {
+                position: absolute;
+                right: 0;
+                top: 0;
+                z-index: 4;
+                display: flex;
+                flex-direction: column;
+
+                .button {
+                }
+              }
+            }
+          }
+        }
+
+        .noFilesYet {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+
+          .hint {
+            color: #777;
+          }
+        }
+      }
+    }
+  }
+
+  .upload {
+    height: 400px;
+
+    .addForm {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 10px;
+      padding: 10px;
+
+      .dropzone {
+        height: 100%;
+        border: 3px dashed rgba(#777, 0.4);
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: border 200ms;
+        flex: 1;
+
+        &:hover {
+          border: 3px dashed rgba(#777, 0.8);
+        }
+
+        .flex, .flex > svg {
+          vertical-align: middle;
+          text-align: center;
+        }
+
+        .supportedTypes {
+          margin-top: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          font-size: 0.8rem;
+          gap: 5px;
+          color: #777;
+        }
+      }
+
+      .downloadByURL {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        @media screen and (max-width: 768px) {
+          flex-direction: column;
+          align-items: stretch;
+          text-align: center;
+        }
+
+        .hint {
+          display: block;
+          margin: 0 10px;
+          font-size: 0.9rem;
+        }
+
+        .input {
+          flex: 1;
+        }
+      }
+    }
+
+
+    .uploadingFiles {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+
+      .uploadingScreen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+
+        .uploadingCaption {
+          display: flex;
+          align-items: center;
+
+          .caption {
+            margin-left: 10px;
+          }
+        }
+
+        .errors {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          font-size: 0.9rem;
+          gap: 5px;
+        }
+      }
+    }
+  }
+}
+
+.delete {
+  background-color: $errorMain !important;
+}
