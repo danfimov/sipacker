@@ -1,0 +1,16 @@
+# Build outputs
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Auto-generated
+public/
+
+# Environment files
+.env
+.env.*
+
+# Lock files
+package-lock.json

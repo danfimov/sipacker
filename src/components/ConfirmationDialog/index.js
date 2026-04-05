@@ -31,31 +31,32 @@ const ConfirmationDialog = React.forwardRef((props, ref) => {
         setConfirmText(confirmText)
         setCheckboxText(checkboxText)
       })
-    }
+    },
   }))
 
   return (
-    <MuiDialog
-      maxWidth='xs'
-      open={open}
-      onClose={() => handleAction(false)}
-    >
+    <MuiDialog maxWidth='xs' open={open} onClose={() => handleAction(false)}>
       <DialogTitle>{props.title}</DialogTitle>
       <DialogContent>
         <DialogContentText>
           {text}
           {props.children}
-          {checkboxText && <FormControlLabel control={
-            <Checkbox
-              defaultChecked
-              value={checkboxValue}
-              onChange={e => setCheckboxValue(e.target.checked)}
+          {checkboxText && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  defaultChecked
+                  value={checkboxValue}
+                  onChange={e => setCheckboxValue(e.target.checked)}
+                />
+              }
+              label={checkboxText}
             />
-          } label={checkboxText} />}
+          )}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button autoFocus onClick={() => handleAction(false)} color='primary'>
+        <Button onClick={() => handleAction(false)} color='primary'>
           Отмена
         </Button>
         <Button onClick={() => handleAction(true)} color='primary'>
@@ -68,7 +69,7 @@ const ConfirmationDialog = React.forwardRef((props, ref) => {
 
 ConfirmationDialog.propTypes = {
   title: PropTypes.string,
-  children: PropTypes.node
+  children: PropTypes.node,
 }
 ConfirmationDialog.displayName = 'ConfirmationDialog'
 export default ConfirmationDialog

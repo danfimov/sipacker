@@ -5,35 +5,42 @@ import { generateWaveform } from 'utils'
 import useSize from '@react-hook/size'
 
 File.propTypes =
-Image.propTypes =
-Audio.propTypes =
-Video.propTypes = {
-  src: PropTypes.object,
-  srcUrl: PropTypes.string,
-  onClick: PropTypes.func,
-  label: PropTypes.string,
-  type: PropTypes.string
-}
+  Image.propTypes =
+  Audio.propTypes =
+  Video.propTypes =
+    {
+      src: PropTypes.object,
+      srcUrl: PropTypes.string,
+      onClick: PropTypes.func,
+      label: PropTypes.string,
+      type: PropTypes.string,
+    }
 const types = {
   image: Image,
   audio: Audio,
-  video: Video
+  video: Video,
 }
 export default function File(props) {
   const component = { rendered: types[props.type] }
-  return (
-    <component.rendered {...props} />
-  )
+  return <component.rendered {...props} />
 }
 
 function Image(props) {
   return (
-    <img
-      src={props.srcUrl}
-      alt={props.srcUrl ? `Изображение для поля ${props.label} с именем «${props.src.name}»` : ''}
+    <div
       onClick={props.onClick}
+      onKeyDown={e => e.key === 'Enter' && props.onClick?.()}
+      role='button'
+      tabIndex={0}
       className={[styles.file, styles.image].join(' ')}
-    />
+    >
+      <img
+        src={props.srcUrl}
+        alt={props.srcUrl ? `Изображение для поля ${props.label} с именем «${props.src.name}»` : ''}
+        className={[styles.file, styles.image].join(' ')}
+        style={{ pointerEvents: 'none' }}
+      />
+    </div>
   )
 }
 
@@ -43,10 +50,10 @@ function Audio(props) {
   const [width] = useSize(ref)
 
   React.useEffect(() => {
-    if(!width) return
+    if (!width) return
     let cleanup = () => {}
     generateWaveform(width, width, props.srcUrl).then(blob => {
-      if(!blob) return
+      if (!blob) return
 
       const url = URL.createObjectURL(blob)
       setPeaksImage(url)
@@ -57,12 +64,24 @@ function Audio(props) {
 
   return (
     <div ref={ref}>
-      <img
-        src={peaksImage}
-        alt={props.srcUrl ? `Волноформа аудио-файла для поля ${props.label} с именем «${props.src.name}»` : ''}
+      <div
         onClick={props.onClick}
+        onKeyDown={e => e.key === 'Enter' && props.onClick?.()}
+        role='button'
+        tabIndex={0}
         className={styles.file}
-      />
+      >
+        <img
+          src={peaksImage}
+          alt={
+            props.srcUrl
+              ? `Волноформа аудио-файла для поля ${props.label} с именем «${props.src.name}»`
+              : ''
+          }
+          style={{ pointerEvents: 'none', width: '100%' }}
+        />
+      </div>
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <audio src={props.srcUrl}></audio>
     </div>
   )
@@ -71,12 +90,18 @@ function Audio(props) {
 function Video(props) {
   return (
     <div>
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
         src={props.srcUrl}
         onClick={props.onClick}
+        onKeyDown={e => e.key === 'Enter' && props.onClick?.()}
+        role='button'
+        tabIndex={0}
         className={styles.file}
-        onCanPlay={e => e.target.playbackRate = 2}
-        loop autoPlay muted
+        onCanPlay={e => (e.target.playbackRate = 2)}
+        loop
+        autoPlay
+        muted
       ></video>
     </div>
   )

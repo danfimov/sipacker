@@ -1,83 +1,168 @@
 .container {
   width: 100%;
   display: flex;
-  gap: 50px;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 
-  @media screen and (max-width: 768px) {
-    flex-direction: column;
-  }
-
-  & > * {
+  .form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    flex: 1;
-    max-width: 400px;
+    gap: 20px;
+    width: 100%;
+  }
 
-    .hint {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 10px;
+  .topRow {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 10px;
 
-          & > *:nth-child(1) {
-            flex: 1;
-          }
-
-          svg path {
-            stroke: #fff;
-          }
-        }
-
-    .grouped {
-      display: flex;
-      gap: 10px;
+    @media screen and (max-width: 1024px) {
+      flex-direction: column;
     }
 
-    .addEvent {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .item {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-
-      .itemType {
-        flex: 1;
-        display: flex;
-        align-items: center;
-
-        .spacing {
-          width: 10px;
-          display: block;
-        }
-      }
-    }
-
-    .details {
+    .answersSection {
+      flex: 3;
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
 
-      .duration {
-        display: flex;
-        align-items: center;
-        gap: 15px;
+    .rightSection {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 200px;
+    }
+  }
 
-        .time {
-          width: 100px;
+  .hint {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    & > *:nth-child(1) {
+      flex: 1;
+    }
+
+    svg path {
+      stroke: #fff;
+    }
+  }
+
+  .grouped {
+    display: flex;
+    gap: 10px;
+  }
+
+  .scenario {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+
+    .scenarioHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 5px;
+
+      .hint {
+        flex: 1;
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .addEventButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    button {
+      flex: 0 0 auto;
+      min-width: auto;
+      text-transform: none;
+      font-weight: 500;
+      padding: 6px 16px;
+    }
+  }
+
+  .item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .itemType {
+      flex: 1;
+      display: flex;
+      align-items: center;
+
+      .spacing {
+        width: 10px;
+        display: block;
+      }
+    }
+  }
+
+  .deleteBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: inherit;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .contentRow {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+
+      @media screen and (max-width: 768px) {
+        flex-direction: column;
+      }
+
+      .eventContent {
+        flex: 3;
+        min-width: 0;
+      }
+
+      .timeField {
+        flex: 1;
+        min-width: 120px;
+        max-width: 200px;
+
+        @media screen and (max-width: 768px) {
+          max-width: 100%;
         }
       }
     }
+  }
 
-    .submit {
-      align-self: flex-start;
-      width: 400px;
-      max-width: 100%;
-    }
+  .submit {
+    align-self: flex-start;
+    width: 400px;
+    max-width: 100%;
   }
 }

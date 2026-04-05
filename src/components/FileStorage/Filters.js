@@ -8,23 +8,29 @@ import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import { ContextMenuActions } from 'components/ContextMenu'
 import { deleteFilesOfPack, getDeletedPacks, getAllURIsFromPack } from 'localStorage/fileStorage'
-import store from 'reducers/index'
+import { useDispatch } from 'react-redux'
+import { fileUnlinked } from 'store/fileRenderingSlice'
 
 Filters.propTypes = {
-  packs: PropTypes.arrayOf(PropTypes.shape({
-    uuid: PropTypes.string,
-    name: PropTypes.string,
-  })),
-  checkboxes: PropTypes.arrayOf(PropTypes.shape({
-    uuid: PropTypes.string,
-    checked: PropTypes.bool,
-  })),
+  packs: PropTypes.arrayOf(
+    PropTypes.shape({
+      uuid: PropTypes.string,
+      name: PropTypes.string,
+    })
+  ),
+  checkboxes: PropTypes.arrayOf(
+    PropTypes.shape({
+      uuid: PropTypes.string,
+      checked: PropTypes.bool,
+    })
+  ),
   onChange: PropTypes.func,
-  reloadPacks: PropTypes.func
+  reloadPacks: PropTypes.func,
 }
 
 export default function Filters(props) {
   const contextMenuActions = React.useContext(ContextMenuActions)
+  const dispatch = useDispatch()
 
   const handleChange = (e, i) => {
     const checkboxes = [...props.checkboxes]
@@ -33,34 +39,29 @@ export default function Filters(props) {
   }
 
   const handleOpenMenu = uuid => e => {
-    contextMenuActions.open(
-      e,
-      [
-        {
-          name: 'Удалить',
-          icon: <MdDelete />,
-          action: async () => {
-            if(uuid === null) {
-              const deletedPacks = await getDeletedPacks()
-              await Promise.all(
-                deletedPacks.map(
-                  async packUUID => {
-                    const fileURIs = await getAllURIsFromPack(packUUID)
-                    fileURIs.forEach(fileURI => store.dispatch({ type: 'fileRendering/fileUnlinked', fileURI }))
-                    await deleteFilesOfPack(packUUID)
-                  }
-                )
-              )
-            } else {
-              const fileURIs = await getAllURIsFromPack(uuid)
-              fileURIs.forEach(fileURI => store.dispatch({ type: 'fileRendering/fileUnlinked', fileURI }))
-              await deleteFilesOfPack(uuid)
-            }
-            props.reloadPacks()
+    contextMenuActions.open(e, [
+      {
+        name: 'Удалить',
+        icon: <MdDelete />,
+        action: async () => {
+          if (uuid === null) {
+            const deletedPacks = await getDeletedPacks()
+            await Promise.all(
+              deletedPacks.map(async packUUID => {
+                const fileURIs = await getAllURIsFromPack(packUUID)
+                fileURIs.forEach(fileURI => dispatch(fileUnlinked({ fileURI })))
+                await deleteFilesOfPack(packUUID)
+              })
+            )
+          } else {
+            const fileURIs = await getAllURIsFromPack(uuid)
+            fileURIs.forEach(fileURI => dispatch(fileUnlinked({ fileURI })))
+            await deleteFilesOfPack(uuid)
           }
-        }
-      ]
-    )
+          props.reloadPacks()
+        },
+      },
+    ])
   }
 
   return (
@@ -71,7 +72,7 @@ export default function Filters(props) {
           Фильтры
         </Typography>
       </div>
-      {props.packs.map((pack, i) =>
+      {props.packs.map((pack, i) => (
         <FormControlLabel
           key={i}
           control={
@@ -84,7 +85,7 @@ export default function Filters(props) {
           label={pack === null ? 'Удаленные паки' : pack.name}
           onContextMenu={handleOpenMenu(pack === null ? null : pack.uuid)}
         />
-      )}
+      ))}
     </Stack>
   )
 }

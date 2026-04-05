@@ -5,23 +5,33 @@ module.exports = {
   },
   'extends': [
     'eslint:recommended',
-    'plugin:react/recommended'
+    'plugin:react/recommended',
+    'plugin:react/jsx-runtime',
+    'plugin:react-hooks/recommended',
+    'plugin:jsx-a11y/recommended'
   ],
   'parserOptions': {
     'ecmaFeatures': {
       'jsx': true
     },
-    'ecmaVersion': 12,
+    'ecmaVersion': 'latest',
     'sourceType': 'module'
   },
   'plugins': [
-    'react'
+    'react',
+    'react-hooks',
+    'jsx-a11y'
   ],
+  'settings': {
+    'react': {
+      'version': 'detect'
+    }
+  },
   'rules': {
     'indent': [
       'error',
       2,
-      {'SwitchCase':1}
+      {'SwitchCase': 1}
     ],
     'linebreak-style': [
       'error',
@@ -37,13 +47,17 @@ module.exports = {
     ],
     'react/jsx-uses-react': 'off',
     'react/react-in-jsx-scope': 'off',
+    'react/prop-types': 'warn',
+    'react/display-name': 'warn',
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
     'no-duplicate-imports': [
       'error'
     ],
     'no-case-declarations': 'off',
     'no-redeclare': 'off',
     'no-unused-vars': [
-      'error',
+      'warn',
       { 'ignoreRestSiblings': true }
     ]
   },

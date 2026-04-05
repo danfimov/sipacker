@@ -4,15 +4,15 @@ import styles from './styles.module.scss'
 import { getRecent } from 'localStorage/fileStorage'
 import File from './File'
 import Typography from '@mui/material/Typography'
-import { useBottomScrollListener } from 'react-bottom-scroll-listener'
+import { useBottomScrollListener } from '../../hooks/useBottomScrollListener'
 import mergeRefs from 'react-merge-refs'
 
 const List = React.forwardRef((props, ref) => {
-  const [fetchedFiles, setFetchedFiles] = React.useState([])
+  const [, setFetchedFiles] = React.useState([])
   const fetchedFilesRef = React.useRef([])
   const [mappedFiles, setMappedFiles] = React.useState([])
   const [offset, setOffset] = React.useState(0)
-  const scrollRef = useBottomScrollListener(() => setOffset(offset+20))
+  const scrollRef = useBottomScrollListener(() => setOffset(offset + 20), { offset: 100 })
   const contentRef = React.useRef()
 
   React.useImperativeHandle(ref, () => ({
@@ -22,18 +22,8 @@ const List = React.forwardRef((props, ref) => {
       setMappedFiles([])
       contentRef.current.scrollTop = 0
       setOffset(0)
-    }
+    },
   }))
-
-  React.useEffect(() => setOffset(-1), [props.packs])
-  React.useEffect(() => mapFiles(offset), [offset])
-
-  const handleRemove = () => {
-    fetchedFilesRef.current = []
-    setFetchedFiles([])
-    setMappedFiles([])
-    setOffset(-1)
-  }
 
   const mapFiles = async offset => {
     offset = Math.max(offset, 0)
@@ -45,11 +35,11 @@ const List = React.forwardRef((props, ref) => {
     const newMappedFiles = []
     let packSwitchUUID
     for (let file of newFetchedFiles) {
-      if(packSwitchUUID !== file.packUUID){
+      if (packSwitchUUID !== file.packUUID) {
         packSwitchUUID = file.packUUID
         newMappedFiles.push({
           packName: props.packs[packSwitchUUID],
-          files: [file]
+          files: [file],
         })
       } else {
         newMappedFiles[newMappedFiles.length - 1].files.push(file)
@@ -59,20 +49,35 @@ const List = React.forwardRef((props, ref) => {
     setMappedFiles(newMappedFiles)
   }
 
+  React.useEffect(() => setOffset(-1), [props.packs])
+  React.useEffect(() => {
+    mapFiles(offset)
+  }, [offset]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRemove = () => {
+    fetchedFilesRef.current = []
+    setFetchedFiles([])
+    setMappedFiles([])
+    setOffset(-1)
+  }
+
   return (
     <div className={styles.list}>
       <div className={styles.content} ref={mergeRefs([contentRef, scrollRef])}>
-        {
-          mappedFiles.length
-            ? mappedFiles.map((packGroup, i) => <div key={i}>
+        {mappedFiles.length ? (
+          mappedFiles.map((packGroup, i) => (
+            <div key={i}>
               <div className={styles.packDivider}>
-                {packGroup.packName
-                  ? <>Пак <b>{packGroup.packName}</b></>
-                  : <>Удаленный пак</>
-                }
+                {packGroup.packName ? (
+                  <>
+                    Пак <b>{packGroup.packName}</b>
+                  </>
+                ) : (
+                  <>Удаленный пак</>
+                )}
               </div>
               <div className={styles.grid}>
-                {packGroup.files.map((file, j) =>
+                {packGroup.files.map((file, j) => (
                   <File
                     file={file}
                     key={`${i}_${j}`}
@@ -80,15 +85,17 @@ const List = React.forwardRef((props, ref) => {
                     onRemove={handleRemove}
                     disabled={file.type !== 'unknown' && file.type !== props.acceptableType}
                   />
-                )}
+                ))}
               </div>
-            </div>)
-            : <div className={styles.noFilesYet}>
-              <Typography className={styles.hint}>Файлы не найдены</Typography>
-              <Typography className={styles.hint}>Попробуйте изменить фильтры</Typography>
-              <Typography className={styles.hint}>Загрузите файлы во вкладке Загрузка</Typography>
             </div>
-        }
+          ))
+        ) : (
+          <div className={styles.noFilesYet}>
+            <Typography className={styles.hint}>Файлы не найдены</Typography>
+            <Typography className={styles.hint}>Попробуйте изменить фильтры</Typography>
+            <Typography className={styles.hint}>Загрузите файлы во вкладке Загрузка</Typography>
+          </div>
+        )}
       </div>
     </div>
   )

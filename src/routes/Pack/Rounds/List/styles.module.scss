@@ -1,4 +1,4 @@
-@import '../../../../consts.scss';
+@use '../../../../consts' as *;
 
 .rounds {
   max-width: 700px;

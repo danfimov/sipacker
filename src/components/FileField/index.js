@@ -5,21 +5,23 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import { getFile } from 'localStorage/fileStorage'
 import FileStorage from 'components/FileStorage'
-import { connect } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import CircularProgress from '@mui/material/CircularProgress'
 import { MdErrorOutline } from 'react-icons/md'
-import store from 'reducers/index'
 import { filesize } from 'utils'
 import unknownFileType from 'assets/unknownFileType.svg'
 import File from './File'
+import {
+  fileRenderingStarted,
+  fileRenderingStopped,
+  setFileUnlinkCallback,
+} from 'store/fileRenderingSlice'
 
 FileField.propTypes = {
   label: PropTypes.string,
   value: PropTypes.string,
   type: PropTypes.string,
   name: PropTypes.string,
-  pack: PropTypes.object,
-  dispatch: PropTypes.func,
   onChange: PropTypes.func,
 }
 
@@ -28,20 +30,23 @@ function FileField(props) {
   const [srcUrl, setSrcUrl] = React.useState(null)
   const [noFile, setNoFile] = React.useState(false)
   const fileStorage = React.useRef()
+  const currentBlobUrl = React.useRef(null)
+  const dispatch = useDispatch()
+  const pack = useSelector(state => state.pack)
 
   React.useEffect(() => {
-    if(!src.fileURI) return
-    props.dispatch({ type: 'fileRendering/setFileUnlinkCallback', fileURI: src.fileURI, callback: () => setNoFile(true) })
-  }, [setNoFile])
+    if (!src.fileURI) return
+    dispatch(setFileUnlinkCallback({ fileURI: src.fileURI, callback: () => setNoFile(true) }))
+  }, [src.fileURI, dispatch])
 
   React.useEffect(() => {
     const fileURI = props.value
-    let cleanup = () => {}
+    let fileURIForCleanup = null
     setSrcUrl()
-    if(fileURI) {
+    if (fileURI) {
       (async () => {
         const file = await getFile(fileURI)
-        if(!file) return setNoFile(true)
+        if (!file) return setNoFile(true)
         else setNoFile(false)
 
         const blob = file.miniature ?? file.blob
@@ -49,30 +54,55 @@ function FileField(props) {
         const size = file.size
         setSrc({ name, size })
 
-        let url
-        if(file.url) {
+        // Revoke the previous blob URL before creating a new one
+        if (currentBlobUrl.current) {
+          URL.revokeObjectURL(currentBlobUrl.current)
+          currentBlobUrl.current = null
+        }
+
+        if (file.url) {
           setSrcUrl(file.type === 'unknown' ? unknownFileType : file.url)
         } else {
-          url = URL.createObjectURL(blob)
+          const url = URL.createObjectURL(blob)
+          currentBlobUrl.current = url
           setSrcUrl(url)
         }
-        props.dispatch({ type: 'fileRendering/fileRenderingStarted', fileURI: file.fileURI, callback: () => setNoFile(true) })
 
-        cleanup = () => {
-          url?.startsWith('blob:') && URL.revokeObjectURL(url)
-          store.dispatch({ type: 'fileRendering/fileRenderingStopped', fileURI: file.fileURI })
-        }
+        fileURIForCleanup = file.fileURI
+        dispatch(fileRenderingStarted({ fileURI: file.fileURI, callback: () => setNoFile(true) }))
       })()
     } else {
       setSrc({})
       setSrcUrl(null)
+      if (currentBlobUrl.current) {
+        URL.revokeObjectURL(currentBlobUrl.current)
+        currentBlobUrl.current = null
+      }
     }
-    return () => cleanup()
-  }, [props.value])
+    return () => {
+      if (fileURIForCleanup) {
+        dispatch(fileRenderingStopped({ fileURI: fileURIForCleanup }))
+      }
+    }
+  }, [props.value, dispatch])
+
+  // Revoke blob URL on unmount
+  React.useEffect(() => {
+    return () => {
+      if (currentBlobUrl.current) {
+        URL.revokeObjectURL(currentBlobUrl.current)
+        currentBlobUrl.current = null
+      }
+    }
+  }, [])
 
   const handleClick = async () => {
-    let result = await new Promise(resolve => fileStorage.current.open(props.pack.uuid, props.type, resolve))
-    if(!result) { return }
+    let result = await new Promise(resolve =>
+      fileStorage.current.open(pack.uuid, props.type, resolve)
+    )
+    if (!result) {
+      return
+    }
     props.onChange(result)
   }
 
@@ -83,39 +113,38 @@ function FileField(props) {
 
   return (
     <div className={styles.container}>
-      <Typography
-        variant='body'
-        color='text.primary'
-        gutterBottom
-        className={styles.label}
-      >{props.label}:</Typography>
+      {props.label && (
+        <Typography variant='body' color='text.primary' gutterBottom className={styles.label}>
+          {props.label}:
+        </Typography>
+      )}
       <div className={styles.preview}>
-        { srcUrl === null
-          ? <Placeholder onClick={handleClick} />
-          : noFile
-            ? <FileMissingIcon onClick={handleClick} />
-            : srcUrl === undefined
-              ? <Loading />
-              : <File
-                type={props.type}
-                src={src}
-                srcUrl={srcUrl}
-                label={props.label}
-                onClick={handleClick}
-              />
-        }
+        {srcUrl === null ? (
+          <Placeholder onClick={handleClick} />
+        ) : noFile ? (
+          <FileMissingIcon onClick={handleClick} />
+        ) : srcUrl === undefined ? (
+          <Loading />
+        ) : (
+          <File
+            type={props.type}
+            src={src}
+            srcUrl={srcUrl}
+            label={props.label}
+            onClick={handleClick}
+          />
+        )}
         <div className={styles.info}>
-          { noFile
-            ? <FileMissing />
-            : src.size !== undefined
-              ? <FileInfo src={src} />
-              : <FileNotSelected />
-          }
-          <Button
-            variant='contained'
-            onClick={handleClear}
-            disabled={!srcUrl && !noFile}
-          >Очистить поле</Button>
+          {noFile ? (
+            <FileMissing />
+          ) : src.size !== undefined ? (
+            <FileInfo src={src} />
+          ) : (
+            <FileNotSelected />
+          )}
+          <Button variant='contained' onClick={handleClear} disabled={!srcUrl && !noFile}>
+            Очистить поле
+          </Button>
         </div>
       </div>
       <FileStorage ref={fileStorage} />
@@ -123,12 +152,18 @@ function FileField(props) {
   )
 }
 
-export default connect(state => ({ pack: state.pack, fileRendering: state.fileRendering }))(FileField)
+export default FileField
 
 Placeholder.propTypes = FileMissingIcon.propTypes = { onClick: PropTypes.func }
 function Placeholder({ onClick }) {
   return (
-    <div className={styles.placeholder} onClick={onClick}>
+    <div
+      className={styles.placeholder}
+      onClick={onClick}
+      onKeyDown={e => e.key === 'Enter' && onClick()}
+      role='button'
+      tabIndex={0}
+    >
       <span>Нажмите, чтобы выбрать</span>
     </div>
   )
@@ -136,7 +171,13 @@ function Placeholder({ onClick }) {
 
 function FileMissingIcon({ onClick }) {
   return (
-    <div className={styles.fileMissing} onClick={onClick}>
+    <div
+      className={styles.fileMissing}
+      onClick={onClick}
+      onKeyDown={e => e.key === 'Enter' && onClick()}
+      role='button'
+      tabIndex={0}
+    >
       <MdErrorOutline className={styles.icon} />
     </div>
   )
@@ -144,9 +185,7 @@ function FileMissingIcon({ onClick }) {
 
 function FileMissing() {
   return (
-    <span>
-      Файл не найден. Вероятно, вы выбрали его, но затем удалили из хранилища файлов.
-    </span>
+    <span>Файл не найден. Вероятно, вы выбрали его, но затем удалили из хранилища файлов.</span>
   )
 }
 
@@ -161,12 +200,7 @@ function FileInfo({ src }) {
 }
 
 function FileNotSelected() {
-  return (
-    <>
-      <span>Файл не выбран</span>
-      <span>Выберите файл, нажав на кнопку левее.</span>
-    </>
-  )
+  return <span>Файл не выбран</span>
 }
 
 function Loading() {

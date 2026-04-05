@@ -22,29 +22,14 @@ const SavingDialog = React.forwardRef((props, ref) => {
   const [errors, setErrors] = React.useState([])
   const [warnings, setWarnings] = React.useState([])
 
-  React.useImperativeHandle(ref, () => ({
-    save(pack) {
-      setOpen(true)
-      startProcessing(pack)
-    }
-  }))
-
-  const startProcessing = async pack => {
-    const errors = await check(pack)
-    setErrors(errors)
-    if(errors.length) return
-
-    setGenerating(true)
-    setTimeout(() => bundlePack(pack), 500)
-  }
-
   const bundlePack = async pack => {
-    let zip, warnings = []
+    let zip,
+      warnings = []
     try {
       const result = await generate(pack)
       zip = result.result
       warnings = result.warnings
-    } catch(e) {
+    } catch (e) {
       console.error(e)
       return setErrors([e?.message])
     }
@@ -53,6 +38,22 @@ const SavingDialog = React.forwardRef((props, ref) => {
     setWarnings(warnings)
     setOpen(warnings.length > 0)
   }
+
+  const startProcessing = async pack => {
+    const errors = await check(pack)
+    setErrors(errors)
+    if (errors.length) return
+
+    setGenerating(true)
+    setTimeout(() => bundlePack(pack), 500)
+  }
+
+  React.useImperativeHandle(ref, () => ({
+    save(pack) {
+      setOpen(true)
+      startProcessing(pack)
+    },
+  }))
 
   return (
     <MuiDialog
@@ -64,31 +65,49 @@ const SavingDialog = React.forwardRef((props, ref) => {
       <DialogTitle>Генерация архива</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          { generating && Boolean(!errors.length) && <>
-            <span style={{ display: 'block', marginBottom: 8 }}>Производится генерация файла пака. Это может занять несколько секунд, в зависимости от количества медиа-файлов.</span>
-            <LinearProgress color='primary' />
-          </>}
-          { Boolean(errors.length) && <>
-            <span style={{ display: 'block' }}>Исправьте следующие ошибки и перезапустите процесс генерации пака:</span>
-            <ul>
-              { errors.map((error, i) => <li key={i}>{error}</li>) }
-            </ul>
-          </> }
-          { Boolean(warnings.length) && <>
-            <span style={{ display: 'block' }}>Во время генерации возникли возникли следующие предупреждения, их не требуется исправлять:</span>
-            <ul>
-              { warnings.map((warning, i) => <li key={i} className={styles.warnings}>{warning}</li>) }
-            </ul>
-          </> }
+          {generating && Boolean(!errors.length) && (
+            <>
+              <span style={{ display: 'block', marginBottom: 8 }}>
+                Производится генерация файла пака. Это может занять несколько секунд, в зависимости
+                от количества медиа-файлов.
+              </span>
+              <LinearProgress color='primary' />
+            </>
+          )}
+          {Boolean(errors.length) && (
+            <>
+              <span style={{ display: 'block' }}>
+                Исправьте следующие ошибки и перезапустите процесс генерации пака:
+              </span>
+              <ul>
+                {errors.map((error, i) => (
+                  <li key={i}>{error}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {Boolean(warnings.length) && (
+            <>
+              <span style={{ display: 'block' }}>
+                Во время генерации возникли возникли следующие предупреждения, их не требуется
+                исправлять:
+              </span>
+              <ul>
+                {warnings.map((warning, i) => (
+                  <li key={i} className={styles.warnings}>
+                    {warning}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </DialogContentText>
       </DialogContent>
-      { !generating &&
+      {!generating && (
         <DialogActions>
-          <Button autoFocus onClick={() => setOpen(false)}>
-            Закрыть
-          </Button>
+          <Button onClick={() => setOpen(false)}>Закрыть</Button>
         </DialogActions>
-      }
+      )}
     </MuiDialog>
   )
 })

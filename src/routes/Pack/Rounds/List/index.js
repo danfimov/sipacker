@@ -3,11 +3,11 @@ import PropTypes from 'prop-types'
 import styles from './styles.module.scss'
 import Round from './Round'
 import AddItem from 'components/ItemsList/AddItem'
-import { connect } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { saveLocalPack } from 'localStorage/localPacks'
 import ItemsList from 'components/ItemsList'
 import EditingToolbar from 'components/EditingToolbar'
-import { mapPackState } from '../../../../utils'
+import { loadPack } from 'store/packSlice'
 
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list)
@@ -18,15 +18,15 @@ const reorder = (list, startIndex, endIndex) => {
 
 RoundsList.propTypes = {
   pack: PropTypes.object,
-  dispatch: PropTypes.func
 }
 
-function RoundsList(props) {
+function RoundsList() {
+  const dispatch = useDispatch()
+  const pack = useSelector(state => state.pack)
   const [rounds, setRounds] = React.useState([])
   const [editing, setEditing] = React.useState(false)
-  const pack = props.pack
 
-  React.useEffect(() => setRounds(props.pack.rounds), [props.pack.rounds])
+  React.useEffect(() => setRounds(pack.rounds), [pack.rounds])
 
   const handleAddRound = async name => {
     let packRounds = [...pack.rounds]
@@ -60,7 +60,7 @@ function RoundsList(props) {
     setRounds(items)
     let newPack = { ...pack, rounds: items }
     await saveLocalPack(newPack)
-    props.dispatch({ type: 'pack/load', pack: newPack })
+    dispatch(loadPack(newPack))
   }
 
   const names = rounds.map(pack => pack.name)
@@ -79,21 +79,18 @@ function RoundsList(props) {
         droppableClassName={styles.droppable}
         itemComponent={Round}
         draggableProps={{
-          pack, editing,
+          pack,
+          editing,
           handleRemoveRound: handleRemoveRound,
           handleRoundNameChange: handleRoundNameChange,
-          roundNamesTextInput: names
+          roundNamesTextInput: names,
         }}
         list={rounds}
         noItemsLabel='Еще нет раундов'
       />
-      <AddItem
-        onAdd={handleAddRound}
-        inputLabel='Название раунда'
-        buttonLabel='Добавить раунд'
-      />
+      <AddItem onAdd={handleAddRound} inputLabel='Название раунда' buttonLabel='Добавить раунд' />
     </div>
   )
 }
 
-export default connect(mapPackState)(RoundsList)
+export default RoundsList

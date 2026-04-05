@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router'
 import { uuidRegex } from '../../../consts'
 import { saveLocalPack } from 'localStorage/localPacks'
@@ -9,20 +9,22 @@ import NotFound404 from 'components/NotFound404'
 import RoundTable from './RoundTable'
 import ThemesEditing from './ThemesEditing'
 import EditingToolbar from 'components/EditingToolbar'
-import { mapPackState } from '../../../utils'
+import { loadPack } from 'store/packSlice'
 
 RoundThemes.propTypes = {
   pack: PropTypes.object,
-  dispatch: PropTypes.func
 }
 
-function RoundThemes(props) {
+function RoundThemes() {
   const [themes, setThemes] = React.useState([])
   const [found, setFound] = React.useState()
   const route = useLocation()
   const roundIndex = route.pathname.split(new RegExp(`/pack/${uuidRegex}/rounds/`), 2)[1]
   const [expand, setExpand] = React.useState()
   let [editing, setEditing] = React.useState(false)
+
+  const dispatch = useDispatch()
+  const pack = useSelector(state => state.pack)
 
   const reorder = (list, startIndex, endIndex) => {
     const result = Array.from(list)
@@ -31,15 +33,15 @@ function RoundThemes(props) {
     return result
   }
 
-  const round = props.pack.rounds[roundIndex-1]
+  const round = pack.rounds[roundIndex - 1]
   React.useEffect(() => {
-    if(round) setFound(true)
+    if (round) setFound(true)
     else setFound(false)
-  }, [])
+  }, [round])
 
   const handleAddTheme = async name => {
     let roundThemes = [...themes]
-    roundThemes.push({ name, id: Date.now(), questions: [] })
+    roundThemes.push({ name, id: Date.now(), questions: [] }) // eslint-disable-line react-hooks/purity
     updateThemes(roundThemes)
   }
 
@@ -51,10 +53,10 @@ function RoundThemes(props) {
 
   const updateThemes = async items => {
     setThemes(items)
-    const newPack = clone(props.pack)
-    newPack.rounds[roundIndex-1].themes = items
+    const newPack = clone(pack)
+    newPack.rounds[roundIndex - 1].themes = items
     await saveLocalPack(newPack)
-    props.dispatch({ type: 'pack/load', pack: newPack })
+    dispatch(loadPack(newPack))
   }
 
   const handleRemoveTheme = index => {
@@ -69,37 +71,37 @@ function RoundThemes(props) {
     updateThemes(roundThemes)
   }
 
-  React.useEffect(() => round && setThemes(round.themes), [round.themes])
+  React.useEffect(() => round && setThemes(round.themes), [round, round?.themes])
 
   return (
-    found !== undefined && (
-      found
-        ? <div>
-          <EditingToolbar
-            showButton={Boolean(themes.length)}
-            onSwitch={() => setEditing(!editing)}
-            editing={editing}
-            heading={`Темы и вопросы раунда ${round.name}`}
+    found !== undefined &&
+    (found ? (
+      <div>
+        <EditingToolbar
+          showButton={Boolean(themes.length)}
+          onSwitch={() => setEditing(!editing)}
+          editing={editing}
+          heading={`Темы и вопросы раунда ${round.name}`}
+        />
+        {themes.length && !editing ? (
+          <RoundTable themes={themes} />
+        ) : (
+          <ThemesEditing
+            themes={themes}
+            onDragEnd={onDragEnd}
+            expand={expand}
+            setExpand={setExpand}
+            setEditing={setEditing}
+            handleAddTheme={handleAddTheme}
+            handleRemoveTheme={handleRemoveTheme}
+            handleChangeThemeName={handleChangeThemeName}
           />
-          {themes.length && !editing
-            ? <RoundTable
-              themes={themes}
-            />
-            : <ThemesEditing
-              themes={themes}
-              onDragEnd={onDragEnd}
-              expand={expand}
-              setExpand={setExpand}
-              setEditing={setEditing}
-              handleAddTheme={handleAddTheme}
-              handleRemoveTheme={handleRemoveTheme}
-              handleChangeThemeName={handleChangeThemeName}
-            />
-          }
-        </div>
-        : <NotFound404 />
-    )
+        )}
+      </div>
+    ) : (
+      <NotFound404 />
+    ))
   )
 }
 
-export default connect(mapPackState)(RoundThemes)
+export default RoundThemes

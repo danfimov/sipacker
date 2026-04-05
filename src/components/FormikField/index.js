@@ -15,17 +15,17 @@ import FileField from 'components/FileField'
 
 const formikMuiErrors = (formik, name) => ({
   error: Boolean(formik.errors[name]),
-  helperText: formik.errors[name]
+  helperText: formik.errors[name],
 })
 
 FormikTextField.propTypes =
-FormikAutocomplete.propTypes =
-FormikCheckbox.propTypes =
-FormikImageField.propTypes =
-{
-  name: PropTypes.string,
-  formik: PropTypes.object
-}
+  FormikAutocomplete.propTypes =
+  FormikCheckbox.propTypes =
+  FormikImageField.propTypes =
+    {
+      name: PropTypes.string,
+      formik: PropTypes.object,
+    }
 
 export function FormikTextField(props) {
   const { name, formik, ...fieldProps } = props
@@ -46,7 +46,6 @@ export function FormikTextField(props) {
   )
 }
 
-
 export function FormikAutocomplete(props) {
   const { formik, name, ...field } = props
   const textFieldRef = React.useRef()
@@ -58,11 +57,11 @@ export function FormikAutocomplete(props) {
   }
 
   let value = formik.values[name] ?? []
-  if(value.length === 1 && value[0] === '') value = []
+  if (value.length === 1 && value[0] === '') value = []
 
   const handleInputChange = (event, value) => {
-    if(!event) return
-    if(value.slice(-1) === ',') {
+    if (!event) return
+    if (value.slice(-1) === ',') {
       addItem()
     } else {
       setInputValue(value)
@@ -70,17 +69,20 @@ export function FormikAutocomplete(props) {
   }
 
   const handleKeyDown = e => {
-    if(e.key === 'Enter') {
+    if (e.key === 'Enter') {
       e.preventDefault()
-    } else if(e.key === ',') { // (for mobile)
+      addItem()
+    } else if (e.key === ',') {
+      // (for mobile)
       addItem()
       e.preventDefault()
     }
   }
 
   const addItem = () => {
+    if (!inputValue.trim()) return
     setInputValue('')
-    handleChange(null, value.concat(inputValue))
+    handleChange(null, value.concat(inputValue.trim()))
   }
 
   return (
@@ -89,8 +91,9 @@ export function FormikAutocomplete(props) {
       multiple
       options={props.options ?? []}
       value={value}
-      getOptionLabel={(option) => option}
-      freeSolo clearOnBlur={true}
+      getOptionLabel={option => option}
+      freeSolo
+      clearOnBlur={false}
       onChange={handleChange}
       inputValue={inputValue}
       onInputChange={handleInputChange}
@@ -122,14 +125,12 @@ export function FormikSelect(props) {
   return (
     <FormControl fullWidth>
       <InputLabel {...error}>{props.label}</InputLabel>
-      <Select
-        {...field}
-        name={name}
-        value={formik.values[name]}
-        onChange={handleChange}
-        {...error}
-      >
-        {Object.entries(options).map(([id, label]) => <MenuItem value={id} key={id}>{label}</MenuItem>)}
+      <Select {...field} name={name} value={formik.values[name]} onChange={handleChange} {...error}>
+        {Object.entries(options).map(([id, label]) => (
+          <MenuItem value={id} key={id}>
+            {label}
+          </MenuItem>
+        ))}
       </Select>
       <FormHelperText error>{formik.errors[name] && formik.errors[name]}</FormHelperText>
     </FormControl>
@@ -146,13 +147,7 @@ export function FormikCheckbox(props) {
 
   return (
     <FormControlLabel
-      control={
-        <Checkbox
-          name={name}
-          checked={formik.values[name]}
-          onChange={handleChange}
-        />
-      }
+      control={<Checkbox name={name} checked={formik.values[name]} onChange={handleChange} />}
       {...field}
     />
   )
@@ -171,7 +166,10 @@ export function FormikSlider(props) {
     formik.setTouched({ ...formik.touched, [name]: true })
   }
 
-  React.useEffect(() => formik.setFieldValue(name, value), [value])
+  const { setFieldValue } = formik
+  React.useEffect(() => {
+    setFieldValue(name, value)
+  }, [value, setFieldValue, name])
 
   return (
     <div className={styles.slider}>
@@ -194,7 +192,7 @@ export function FormikImageField(props) {
   const handleChange = fileURI => {
     formik.setFieldValue(name, fileURI ?? '')
     let touched = { ...formik.touched }
-    if(fileURI !== undefined || formik.initialValues[name] !== (fileURI ?? '')) {
+    if (fileURI !== undefined || formik.initialValues[name] !== (fileURI ?? '')) {
       touched = { ...formik.touched, [name]: true }
     } else {
       const formikTouched = { ...formik.touched }
@@ -204,12 +202,5 @@ export function FormikImageField(props) {
     formik.setTouched(touched)
   }
 
-  return (
-    <FileField
-      {...field}
-      type='image'
-      value={formik.values[name]}
-      onChange={handleChange}
-    />
-  )
+  return <FileField {...field} type='image' value={formik.values[name]} onChange={handleChange} />
 }

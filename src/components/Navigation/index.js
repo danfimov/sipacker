@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from './styles.module.scss'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import IconButton from '@mui/material/IconButton'
 import { ImGithub } from 'react-icons/im'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
@@ -38,17 +38,18 @@ export default function Navigation() {
             <AiOutlineInfoCircle />
           </IconButton>
         </div>
-        <Dialog
-          open={infoShown}
-          onClose={() => setInfoShown(false)}
-        >
-          <DialogTitle>
-            Автор приложения
-          </DialogTitle>
+        <Dialog open={infoShown} onClose={() => setInfoShown(false)}>
+          <DialogTitle>Автор приложения</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              <span style={{ display: 'block' }}>Веб-приложение создано VityaSchel в 2021 году для игры SiGame как кроссплатформенная замена SIQuester.</span>
-              <span style={{ display: 'block' }}>Все свои идеи и предложения излагайте в пул-реквестах или хотя бы во вкладке Issues, а не в моих лс.</span>
+              <span style={{ display: 'block' }}>
+                Веб-приложение создано VityaSchel в 2021 году для игры SiGame как кроссплатформенная
+                замена SIQuester.
+              </span>
+              <span style={{ display: 'block' }}>
+                Все свои идеи и предложения излагайте в пул-реквестах или хотя бы во вкладке Issues,
+                а не в моих лс.
+              </span>
               <span style={{ display: 'block' }}>
                 <a
                   href='https://github.com/VladimirKhil/SI/wiki/%D0%A1%D0%BF%D0%B5%D1%86%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F-%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%B0-.siq'
@@ -58,18 +59,22 @@ export default function Navigation() {
                 </a>
               </span>
               <span style={{ display: 'block' }}>
-                Большая благодарность Владимиру Хилю за то, что не игнорил мои вопросы во время разработки этого сайта
-                (привет разработчикам мафии онлайн и мафии го) и разработчикам сайтов sigame.ru и sigame.xyz за сотрудничество.
+                Большая благодарность Владимиру Хилю за то, что не игнорил мои вопросы во время
+                разработки этого сайта (привет разработчикам мафии онлайн и мафии го) и
+                разработчикам сайтов sigame.ru и sigame.xyz за сотрудничество.
               </span>
               <span style={{ display: 'block' }}>
-                Также хочу пожелать удачи и легкой
-                службы <a
+                Также хочу пожелать удачи и легкой службы{' '}
+                <a
                   href='https://vk.com/id245297843'
                   target='_blank'
                   rel='noreferrer'
                   className='onHover'
-                >Роме Кучину</a>, который своим комментарием натолкнул меня на идею создания этого сайта, но не может
-                работать со мной по причине Я в армии.
+                >
+                  Роме Кучину
+                </a>
+                , который своим комментарием натолкнул меня на идею создания этого сайта, но не
+                может работать со мной по причине Я в армии.
               </span>
             </DialogContentText>
           </DialogContent>

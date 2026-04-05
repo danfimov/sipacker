@@ -1,23 +1,7 @@
 import PropTypes from 'prop-types'
-import { Draggable } from 'react-beautiful-dnd'
+import { useSortable } from '@dnd-kit/sortable'
 import Card from '@mui/material/Card'
 import styles from './styles.module.scss'
-
-function getStyle(style) {
-  if (style.transform) {
-    const axisLockY =
-      'translate(0px' +
-      style.transform.slice(
-        style.transform.indexOf(','),
-        style.transform.length
-      )
-    return {
-      ...style,
-      transform: axisLockY
-    }
-  }
-  return style
-}
 
 Item.propTypes = {
   index: PropTypes.number,
@@ -28,21 +12,28 @@ Item.propTypes = {
 }
 
 export default function Item(props) {
+  const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.draggableId,
+  })
+
+  const style = {
+    transform: transform ? `translate(0px, ${transform.y}px)` : undefined,
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  // Create a 'provided' object similar to react-beautiful-dnd for backward compatibility
+  const provided = {
+    innerRef: setNodeRef,
+    draggableProps: {
+      style,
+    },
+    dragHandleProps: listeners,
+  }
+
   return (
-    <Draggable
-      draggableId={String(props.draggableId)}
-      index={props.index}
-    >
-      {provided =>
-        <Card
-          className={[props.className, styles.item].join(' ')}
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          style={getStyle(provided.draggableProps.style)}
-        >
-          {props.children(provided)}
-        </Card>
-      }
-    </Draggable>
+    <Card className={[props.className, styles.item].join(' ')} ref={setNodeRef} style={style}>
+      {props.children(provided)}
+    </Card>
   )
 }
