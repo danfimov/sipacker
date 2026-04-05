@@ -20,7 +20,7 @@ const RenameDialog = React.forwardRef((props, ref) => {
       setOldName(oldName)
       setValue(oldName)
       setOpen(true)
-    }
+    },
   }))
 
   const handleCancel = () => {
@@ -34,11 +34,7 @@ const RenameDialog = React.forwardRef((props, ref) => {
   }
 
   return (
-    <MuiDialog
-      maxWidth='xs'
-      open={open}
-      onClose={handleCancel}
-    >
+    <MuiDialog maxWidth='xs' open={open} onClose={handleCancel}>
       <DialogTitle>Переименовать {subject}</DialogTitle>
       <DialogContent>
         <TextField
@@ -51,7 +47,7 @@ const RenameDialog = React.forwardRef((props, ref) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button autoFocus onClick={handleCancel} color='primary'>
+        <Button onClick={handleCancel} color='primary'>
           Отмена
         </Button>
         <Button onClick={handleRename} color='primary' disabled={!value.length}>

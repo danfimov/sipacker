@@ -1,4 +1,4 @@
-@import '../../consts.scss';
+@use '../../consts' as *;
 
 .title {
   display: flex;
@@ -212,7 +212,8 @@
           border: 3px dashed rgba(#777, 0.8);
         }
 
-        .flex, .flex > svg {
+        .flex,
+        .flex > svg {
           vertical-align: middle;
           text-align: center;
         }
@@ -250,7 +251,6 @@
         }
       }
     }
-
 
     .uploadingFiles {
       display: flex;

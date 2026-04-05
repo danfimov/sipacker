@@ -1,60 +1,64 @@
-import {
-  Router,
-  Switch,
-  Route
-} from 'react-router-dom'
-import Dashboard from './routes/Dashboard'
+import { lazy, Suspense } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 import Navigation from './components/Navigation/index.js'
-import NewPack from './routes/NewPack'
-import Pack from './routes/Pack'
-import sipackerStore from './reducers'
+import sipackerStore from './store'
 import { Provider } from 'react-redux'
 import Container from './components/Container'
 import 'dayjs/locale/ru'
-import { history } from './utils'
+
 import NotFound404 from 'components/NotFound404'
 import ContextMenuProvider from 'components/ContextMenu'
+
+const Dashboard = lazy(() => import('./routes/Dashboard'))
+const NewPack = lazy(() => import('./routes/NewPack'))
+const Pack = lazy(() => import('./routes/Pack'))
 
 export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#4248fb'
-    }
+      main: '#4248fb',
+    },
   },
   components: {
     MuiDialog: {
       defaultProps: {
         disableRestoreFocus: true,
-      }
-    }
-  }
+      },
+    },
+  },
 })
+
+function PageLoader() {
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+      <CircularProgress />
+    </Box>
+  )
+}
 
 export default function App() {
   return (
     <Provider store={sipackerStore}>
       <ThemeProvider theme={darkTheme}>
-        <Router history={history} basename={process.env.PUBLIC_URL}>
+        <BrowserRouter basename={import.meta.env.VITE_BASE_PATH || '/'}>
           <ContextMenuProvider>
             <Container>
               <Navigation />
-              <Switch>
-                <Route exact path='/'>
-                  <Dashboard />
-                </Route>
-                <Route path='/create'>
-                  <NewPack />
-                </Route>
-                <Route path={['/pack/:packUUID', '/pack/:packUUID/*']}>
-                  <Pack />
-                </Route>
-                <Route path='*'><NotFound404 /></Route>
-              </Switch>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path='/' element={<Dashboard />} />
+                  <Route path='/create' element={<NewPack />} />
+                  <Route path='/pack/:packUUID/*' element={<Pack />} />
+                  <Route path='*' element={<NotFound404 />} />
+                </Routes>
+              </Suspense>
             </Container>
           </ContextMenuProvider>
-        </Router>
+        </BrowserRouter>
       </ThemeProvider>
     </Provider>
   )

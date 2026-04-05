@@ -5,7 +5,6 @@ import cx from 'classnames'
 import Snackbar from '@mui/material/Snackbar'
 import Slide from '@mui/material/Slide'
 import Alert from '@mui/material/Alert'
-import { connect } from 'react-redux'
 import { uploadPack } from '../PackUploader'
 import { MdFileUpload } from 'react-icons/md'
 import Dropzone from 'react-dropzone'
@@ -18,7 +17,9 @@ function Upload(props) {
 
   const handleDrop = async acceptedFiles => {
     setEntered(false)
-    if(!acceptedFiles) { return }
+    if (!acceptedFiles) {
+      return
+    }
     for (let pack of acceptedFiles) {
       try {
         await uploadPack(pack)
@@ -35,7 +36,7 @@ function Upload(props) {
 
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setContent(content.filter(c => c.date >= Date.now()-1000*5))
+      setContent(content.filter(c => c.date >= Date.now() - 1000 * 5))
     }, 1000)
     return () => clearInterval(interval)
   }, [content])
@@ -48,13 +49,17 @@ function Upload(props) {
         onDrop={handleDrop}
         accept={['.siq']}
       >
-        {({getRootProps, getInputProps}) => (
-          <div className={cx(
-            [styles.packBase, styles.newPack, styles.upload],
-            { [styles.dragOver]: entered }
-          )} {...getRootProps()}>
+        {({ getRootProps, getInputProps }) => (
+          <div
+            className={cx([styles.packBase, styles.newPack, styles.upload], {
+              [styles.dragOver]: entered,
+            })}
+            {...getRootProps()}
+          >
             <input {...getInputProps()} />
-            <span><MdFileUpload /> Загрузить файл пака</span>
+            <span>
+              <MdFileUpload /> Загрузить файл пака
+            </span>
           </div>
         )}
       </Dropzone>
@@ -65,7 +70,9 @@ function Upload(props) {
         TransitionComponent={SlideTransition}
       >
         <Alert severity='error' className={styles.alert}>
-          {content.map((c, i) => <p key={i}>{c.text}</p>)}
+          {content.map((c, i) => (
+            <p key={i}>{c.text}</p>
+          ))}
         </Alert>
       </Snackbar>
     </>
@@ -73,9 +80,7 @@ function Upload(props) {
 }
 
 Upload.propTypes = {
-  dashboard: PropTypes.object,
-  dispatch: PropTypes.func,
-  reloadPacks: PropTypes.func
+  reloadPacks: PropTypes.func,
 }
 
-export default connect(state => ({ dashboard: state.dashboard }))(Upload)
+export default Upload

@@ -1,101 +1,78 @@
 # SIPacker
-![Netlify Status](https://api.netlify.com/api/v1/badges/fb6c0bf2-2808-4dfe-a4c8-0b8efce9e769/deploy-status)
-![Code size in bytes](https://img.shields.io/github/languages/code-size/VityaSchel/SIPacker)
-![Repo stars](https://git.hloth.dev/hloth/sipacker/badges/stars.svg)
-![Localization](https://img.shields.io/badge/English%20(US)-0%25-red)
 
-Онлайн-редактор паков для Своей Игры (SiGame Владимиря Хиля)
-
-> [!CAUTION]
-> ПРОЕКТ НЕ ПОДДЕРЖИВАЕТСЯ И СОДЕРЖИТ НЕКОТОРЫЕ ПРОБЛЕМЫ С ГЕНЕРАЦИЕЙ ПАКОВ! см. https://git.hloth.dev/hloth/sipacker/issues/42
+An online pack editor for SIGame (Своя Игра / "Own Game") by Vladimir Khil.
 
 <p align="center">
   <img src="./docs/137257961-73f0aceb-19c9-4e1f-a3fe-80204f145f2d.png" />
 </p>
 
-> [!IMPORTANT]
-> Я ищу работу! Если вы заинтересованы в моем найме, посетите [cv.hloth.dev](https://cv.hloth.dev), чтобы просмотреть мои резюме и CV.
+**Live version:** https://sipacker.netlify.app
 
-## Развернутая версия
+## SIPacker vs other editors
 
-[sipacker.netlify.app](https://sipacker.netlify.app)
-
-Все обновления с ветки master загружаются на развернутую версию автоматически в течение 5 минут.
-
-*(Переехали с Github Pages из-за отсутствия возможности перенаправить весь трафик в корень сайта)*
-
-## Сравнение SIPacker с другими редакторами
+[SIQuester](https://vladimirkhil.com/si/siquester) is the official pack editor for SIGame.
 
 <!-- ✅ ❌ ⏳ -->
 
-[SIQuester](https://vladimirkhil.com/si/siquester) — официальный редактор паков для Своей Игры
-
 &nbsp;|SIPacker|SIQuester
 ---|---|---
-Запуск на macOS, Linux, Android<sup>1</sup>|✅|❌
-Импорт паков по URL|✅|❌
-Мгновенное сжатие изображений|✅|❌
-Интеграция с sigame.ru|⏳|❌
-Работает офлайн|✅|✅
-Импорт и экспорт siq-файлов паков|✅|✅
-Поддержка всех типов вопросов|✅|✅
-Поддержка текста, аудио и видео файлов|✅|✅
-Поддержка external-ресурсов|✅|✅
-Экспорт в HTML, xml, docx, rtf, xps, текст|❌|✅
-Экспорт файла для отправки на ТВ-версию игры, СНС|❌|✅
-Объединение паков|❌|✅
-Ограничение на один медиа-файл|от 500 МБ до 2 ГБ<sup>2</sup>|Фото: 25 кб, музыка: 500 кб
-Ограничение на медиа-файлы во всем приложении|250 МБ (или до 1 ГБ<sup>3</sup>)|Неограниченно
+Runs on macOS, Linux, Android<sup>1</sup>|✅|❌
+Import packs by URL|✅|❌
+Instant image compression|✅|❌
+sigame.ru integration|⏳|❌
+Works offline|✅|✅
+Import and export .siq pack files|✅|✅
+All question types supported|✅|✅
+Text, audio, and video file support|✅|✅
+External resource support|✅|✅
+Export to HTML, XML, DOCX, RTF, XPS, plain text|❌|✅
+Export for TV version / SNS submission|❌|✅
+Pack merging|❌|✅
+Single media file size limit|500 MB – 2 GB<sup>2</sup>|Images: 25 KB, audio: 500 KB
+Total media storage limit|250 MB (up to 1 GB<sup>3</sup>)|Unlimited
 
+<sup>1</sup> — The .NET runtime required to compile SIQuester can technically be installed on macOS and Linux, but there are no official build instructions and the UI may not work correctly on non-Windows systems.
 
-<sup>1</sup> — .NET, необходимый для компиляции исходного кода SIQuester, возможно скачать на Mac и Linux, самостоятельно скомпилировать код и запустить на этих системах, но инструкции о том, как правильно скомпилировать проект не прилагаются, а UI может не работать из-за разных ОС
+<sup>2</sup> — Firefox: 800 MB, Chrome: 2 GB, Chrome (Android): RAM/5, Opera: 500 MB. It is recommended to keep individual files under 1 MB and the total pack size under 100 MB.
 
-<sup>2</sup> — Firefox: 800 МБ, Google Chrome: 2 ГБ, Google Chrome (Android): ОЗУ/5, Opera: 500 МБ. Рекомендуется не загружать файлы размером больше 1 МБ, а размер пака не должен превышать 100 МБ.
+<sup>3</sup> — Users can manually increase the IndexedDB quota for a given origin in their browser settings.
 
-<sup>3</sup> — Пользователь может сам настроить лимит на размер IndexedDB на домен в настройках браузера
+## Running locally
 
-## Запуск локально
+### Prerequisites
 
-Если по какой-то причине развернутая версия вам не подходит, то вы можете развернуть приложение самостоятельно:
+- Node.js 18+
+- npm 9+
 
-1. Выберите ветку: master (стабильная) или dev (разработка). Остальные ветки временные и предназначены для больших изменений, которые впоследствие могут быть или отменены или добавлены в ветку dev. Перейдите на страницу выбранной ветки
+### Development
 
-2. Скачайте репозиторий как zip или клонируйте его
-
-3. Введите команду, которая выведет результат в папку build
-```
-$ npm run build
-```
-\
-Если необходимо сделать билд с префиксом в url, установите его в переменной PUBLIC_URL с косой чертой в начале, но без неё в конце.
-```
-$ PUBLIC_URL=/SIPacker npm run build
+```sh
+npm install
+npm run dev
 ```
 
-## Запуск с фейковым доменом
+The dev server starts at http://localhost:3000 with hot module replacement enabled.
 
-Если вам интересно, как запустить SIPacker с фейковым доменом и самоподписанным сертификатом (например https://sipacker.test без загрузки в веб), прочитайте инструкцию [/keys/Instructions.txt](/keys/Instructions.txt)
+### Production build
 
-## Поддержка браузерами
+```sh
+npm run build
+```
 
-![Поддержка браузерами](./docs/compatibility-table.svg)
+Output is written to the `build/` directory. To preview the production build locally:
 
-Если вы все еще пользуетесь Safari то просто пожалуйста прекратите. Вот неполный список того, что не будет работать в SIPacker, открытом в Safari:
+```sh
+npm run preview
+```
 
-- Размер всех медиа-файлов и самого пака ограничен всего до 30 МБ (это также распространяется на external-ресурсы и импортируемые паки)
-- Кеш external-ресурсов, чтобы можно было работать с ним офлайн
-- Вероятно, корректное воспроизведение аудио и видео файлов
-- Шрифты и многие аспекты дизайна, верстка
-- Возможны баги с компрессией файлов
+### Building with a URL base path
 
-## Contributing
+If the app is served from a subdirectory (e.g. GitHub Pages), set `VITE_BASE_PATH`:
 
-Не надо
+```sh
+VITE_BASE_PATH=/SIPacker npm run build
+```
 
-## Спонсирование
+## Running with a fake domain and self-signed certificate
 
-Пожалуйста задонатьте мне пожалуйста [https://hloth.dev/donate](https://hloth.dev/donate) прошу вас пожалуйста.
-
-## Лицензия
-
-[MIT](./LICENSE)
+If you want to run SIPacker under a custom local domain with HTTPS (e.g. `https://sipacker.test`), follow the instructions in [/keys/Instructions.txt](/keys/Instructions.txt).

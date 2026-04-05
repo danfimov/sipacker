@@ -18,7 +18,7 @@ Pack.propTypes = {
     name: PropTypes.string,
     creationTime: PropTypes.number,
     logo: PropTypes.string,
-  })
+  }),
 }
 export default function Pack(props) {
   const confDialogRef = React.useRef()
@@ -30,19 +30,21 @@ export default function Pack(props) {
   const handleOpenMenu = e => {
     contextMenuActions.open(e, [
       { name: 'Переименовать', icon: <BiRename />, action: () => handleRenamePack() },
-      { name: 'Удалить', icon: <MdDelete />, action: () => handleDeletePack() }
+      { name: 'Удалить', icon: <MdDelete />, action: () => handleDeletePack() },
     ])
   }
 
   const handleDeletePack = () => {
-    confDialogRef.current.confirmPackDeletion(props.pack.uuid).then(confirmed => confirmed && dashboardActions.reloadPacks())
+    confDialogRef.current
+      .confirmPackDeletion(props.pack.uuid)
+      .then(confirmed => confirmed && dashboardActions.reloadPacks())
   }
 
   const handleRenamePack = async () => {
     const newName = await new Promise(resolve =>
       renameDialog.current.askToRename(resolve, 'пак', props.pack.name)
     )
-    if(newName !== undefined){
+    if (newName !== undefined) {
       let pack = await loadLocalPack(props.pack.uuid)
       pack = { ...pack, name: newName }
       saveLocalPack(pack)
@@ -55,6 +57,9 @@ export default function Pack(props) {
       <div
         className={[styles.packBase, styles.pack].join(' ')}
         onContextMenu={handleOpenMenu}
+        role='button'
+        tabIndex={0}
+        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleOpenMenu(e)}
       >
         <PackImage src={props.pack.logo} />
         <div className={styles.info}>
@@ -62,7 +67,11 @@ export default function Pack(props) {
           <span className={styles.time}>Создано: {creationTime}</span>
         </div>
       </div>
-      <div onClick={e => e.stopPropagation()}>
+      <div
+        role='presentation'
+        onClick={e => e.stopPropagation()}
+        onKeyDown={e => e.stopPropagation()}
+      >
         <DeleteConfirmationDialog ref={confDialogRef} />
         <RenameDialog ref={renameDialog} />
       </div>

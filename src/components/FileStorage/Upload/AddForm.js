@@ -16,18 +16,17 @@ const urlName = url => url.split('/').splice(-1) || 'Без названия'
 export async function getUrlFileInfo(url) {
   let response
   try {
-    response = await fetch(url, { headers: { 'X-SIPacker-External-Media': 'True' }})
-  } catch(e) {
+    response = await fetch(url, { headers: { 'X-SIPacker-External-Media': 'True' } })
+  } catch (e) {
     throw 'Couldn\'t get the image'
   }
-  if(response?.status !== 200) throw 'Couldn\'t get the image'
+  if (response?.status !== 200) throw 'Couldn\'t get the image'
 
   const file = {}
   const contentTypeHeader = response?.headers?.get?.('content-type')
   const actualMimeType = contentType.parse(contentTypeHeader).type
   file.type = actualMimeType
-  if(!allowedFileTypes.includes(file.type))
-    throw 'File mime-type is not supported'
+  if (!allowedFileTypes.includes(file.type)) throw 'File mime-type is not supported'
 
   const blob = await response.blob()
   file.size = blob.size
@@ -42,10 +41,11 @@ AddForm.propTypes = {
   setErrors: PropTypes.func,
   setFiles: PropTypes.func,
   setStage: PropTypes.func,
-  packUUID: PropTypes.string
+  packUUID: PropTypes.string,
 }
 
 function AddForm(props) {
+  const { setFiles, setStage } = props
   React.useEffect(() => {
     const handlePaste = event => {
       const items = (event.clipboardData || event.originalEvent.clipboardData).items
@@ -56,13 +56,13 @@ function AddForm(props) {
           files.push(blob)
         }
       }
-      if(!files.length) return
-      props.setFiles(files)
-      props.setStage('preview')
+      if (!files.length) return
+      setFiles(files)
+      setStage('preview')
     }
     document.addEventListener('paste', handlePaste)
     return () => document.removeEventListener('paste', handlePaste)
-  }, [])
+  }, [setFiles, setStage])
 
   const handleDrop = async files => {
     props.setFiles(files)
@@ -72,25 +72,23 @@ function AddForm(props) {
   const validate = async values => {
     const url = values.url.startsWith('!') ? values.url.substring(1) : values.url
     try {
-      await yup
-        .string()
-        .url('Некорректный формат адреса')
-        .required('Введите адрес')
-        .validate(url)
-    } catch(e) { return { url: e.errors } }
-    if(!url.startsWith('http')) return { url: 'Поддерживается только схема https' }
-    if(url.startsWith('http://')){
+      await yup.string().url('Некорректный формат адреса').required('Введите адрес').validate(url)
+    } catch (e) {
+      return { url: e.errors }
+    }
+    if (!url.startsWith('http')) return { url: 'Поддерживается только схема https' }
+    if (url.startsWith('http://')) {
       values.file = {
         type: 'unknown',
         size: null,
-        name: urlName(url)
+        name: urlName(url),
       }
     } else {
       try {
         const file = await getUrlFileInfo(url)
         values.file = file
-      } catch(e) {
-        switch(e) {
+      } catch (e) {
+        switch (e) {
           case 'Couldn\'t get the image':
             return { url: 'Не удалось получить изображение' }
 
@@ -114,28 +112,27 @@ function AddForm(props) {
       try {
         const url = values.url.startsWith('!') ? values.url.substring(1) : values.url
         await saveFileAsURL(url, values.file, props.packUUID)
-      } catch(e) {
+      } catch (e) {
         console.error(e)
         hasErrors = true
         props.setErrors([{ filename: values.file.name, errorMessage: e }])
         props.setStage('addForm')
       }
       !hasErrors && props.setTab('added')
-    }
+    },
   })
 
   const httpScheme = formik.values.url?.startsWith('http:')
 
   return (
     <div className={styles.addForm}>
-      <Dropzone
-        onDropAccepted={handleDrop}
-        accept={allowedFileTypes}
-      >
+      <Dropzone onDropAccepted={handleDrop} accept={allowedFileTypes}>
         {({ getRootProps, getInputProps }) => (
           <div className={styles.dropzone} {...getRootProps()}>
             <input {...getInputProps()} />
-            <span className={styles.flex}><MdFileUpload /> Загрузите, перетащите или вставьте медиа-файлы</span>
+            <span className={styles.flex}>
+              <MdFileUpload /> Загрузите, перетащите или вставьте медиа-файлы
+            </span>
             <span className={styles.supportedTypes}>
               <span>Поддерживаемые типы файлов:</span>
               <span>Фото: png, jpeg, gif</span>
@@ -155,9 +152,25 @@ function AddForm(props) {
           size='small'
           className={styles.input}
         />
-        <Tooltip title={httpScheme ? <p>В связи с техническими ограничениями браузера добавлять медиа-контент можно только по протоколу https. Однако, текущая версия SIGame не поддерживает https, поэтому вы можете добавить http ссылку в SIPacker, дописав ! в начале адреса, но в таком случае вы не сможете просматривать файлы через Хранилище файлов. Если вы все равно желаете добавить файл, напишите его адрес вот так: <pre>!{formik.values.url}</pre></p> : ''}>
+        <Tooltip
+          title={
+            httpScheme ? (
+              <p>
+                В связи с техническими ограничениями браузера добавлять медиа-контент можно только
+                по протоколу https. Однако, текущая версия SIGame не поддерживает https, поэтому вы
+                можете добавить http ссылку в SIPacker, дописав ! в начале адреса, но в таком случае
+                вы не сможете просматривать файлы через Хранилище файлов. Если вы все равно желаете
+                добавить файл, напишите его адрес вот так: <pre>!{formik.values.url}</pre>
+              </p>
+            ) : (
+              ''
+            )
+          }
+        >
           <span>
-            <Button type='submit' disabled={httpScheme}>Добавить</Button>
+            <Button type='submit' disabled={httpScheme}>
+              Добавить
+            </Button>
           </span>
         </Tooltip>
       </form>

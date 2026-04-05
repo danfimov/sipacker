@@ -1,54 +1,47 @@
 import PropTypes from 'prop-types'
 import styles from './styles.module.scss'
 import PackBreadcrumbs from './PackBreadcrumbs/'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { componentsPropTypes } from '../../consts'
 import PackToolbar from './PackToolbar/'
 import Rounds from './Rounds'
 import Settings from './Settings/'
-import { Switch, Route, useRouteMatch } from 'react-router-dom'
+import { Routes, Route } from 'react-router'
 import RoundThemes from './RoundThemes'
 import NotFound404 from 'components/NotFound404'
 import Question from './Question'
-import { mapPackState } from 'utils'
 
 PackPageContainer.propTypes = {
   children: PropTypes.node,
   pack: componentsPropTypes.pack,
-  toolbar: PropTypes.string
+  toolbar: PropTypes.string,
 }
 
 export const questionPath = '/rounds/:roundIndex/themes/:themeIndex/questions/:questionPrice'
 
-function PackPageContainer(props) {
-  const { path } = useRouteMatch()
+function PackPageContainer() {
+  const pack = useSelector(state => state.pack)
 
   return (
-    props.pack
-    && (props.pack === 'notFound'
-      ? <NotFound404 />
-      : <div className={styles.container}>
+    pack &&
+    (pack === 'notFound' ? (
+      <NotFound404 />
+    ) : (
+      <div className={styles.container}>
         <div className={styles.toolbar}>
           <PackBreadcrumbs />
           <PackToolbar />
         </div>
-        <Switch>
-          <Route exact path={path}>
-            <Rounds />
-          </Route>
-          <Route path={`${path}/settings`}>
-            <Settings />
-          </Route>
-          <Route path={`${path}${questionPath}`}>
-            <Question />
-          </Route>
-          <Route path={`${path}/rounds/:roundIndex`}>
-            <RoundThemes />
-          </Route>
-          <Route path='*'><NotFound404 /></Route>
-        </Switch>
-      </div>)
+        <Routes>
+          <Route index element={<Rounds />} />
+          <Route path='settings' element={<Settings />} />
+          <Route path={questionPath} element={<Question />} />
+          <Route path='rounds/:roundIndex' element={<RoundThemes />} />
+          <Route path='*' element={<NotFound404 />} />
+        </Routes>
+      </div>
+    ))
   )
 }
 
-export default connect(mapPackState)(PackPageContainer)
+export default PackPageContainer

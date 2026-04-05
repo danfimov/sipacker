@@ -34,6 +34,24 @@ const FileStorage = React.forwardRef((props, ref) => {
     setTimeout(() => callback(selectedFile), 1)
   }
 
+  const loadPacks = async () => {
+    const packs = await loadLocalPacks()
+    const deletedPacks = await getDeletedPacks()
+    if (deletedPacks.length) packs.push(null)
+    setPacks(packs)
+    setCheckboxes(
+      packs.map(pack => {
+        const deletedPack = pack === null
+        const packUUID = deletedPack ? null : pack.uuid
+        const checked = checkboxes.find(({ uuid }) => uuid === packUUID)?.checked
+        return {
+          uuid: packUUID,
+          checked: checked !== undefined ? Boolean(checked) : !deletedPack,
+        }
+      })
+    )
+  }
+
   React.useImperativeHandle(ref, () => ({
     async open(packUUID, acceptableType, callback) {
       setCallback(() => callback)
@@ -41,50 +59,24 @@ const FileStorage = React.forwardRef((props, ref) => {
       setOpen(true)
       setPackUUID(packUUID)
       setAcceptableType(acceptableType)
-    }
+    },
   }))
 
-  const loadPacks = async () => {
-    const packs = await loadLocalPacks()
-    const deletedPacks = await getDeletedPacks()
-    if(deletedPacks.length) packs.push(null)
-    setPacks(packs)
-    setCheckboxes(
-      packs.map(
-        pack => {
-          const deletedPack = pack === null
-          const packUUID = deletedPack ? null : pack.uuid
-          const checked = checkboxes.find(({ uuid }) => uuid === packUUID)?.checked
-          return (
-            {
-              uuid: packUUID,
-              checked: checked !== undefined
-                ? Boolean(checked)
-                : !deletedPack
-            }
-          )
-        }
-      )
-    )
-  }
-
-  const filteredPacks = Object.fromEntries(checkboxes
-    .filter(cb => cb.checked)
-    .map(checkedPack => ([checkedPack.uuid,
-      checkedPack.uuid === null
-        ? 'Удаленные паки'
-        : packs.find(pack => pack.uuid === checkedPack.uuid)?.name
-    ])
-    )
+  const filteredPacks = Object.fromEntries(
+    checkboxes
+      .filter(cb => cb.checked)
+      .map(checkedPack => [
+        checkedPack.uuid,
+        checkedPack.uuid === null
+          ? 'Удаленные паки'
+          : packs.find(pack => pack.uuid === checkedPack.uuid)?.name,
+      ])
   )
 
   React.useEffect(() => listRef.current?.reset(), [checkboxes])
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-    >
+    <Dialog open={open} onClose={handleClose}>
       <DialogTitle className={styles.title}>
         <span>Хранилище файлов</span>
         <IconButton
@@ -97,7 +89,8 @@ const FileStorage = React.forwardRef((props, ref) => {
       </DialogTitle>
       <DialogContent className={styles.dialog}>
         <Tabs
-          value={tab} variant='fullWidth'
+          value={tab}
+          variant='fullWidth'
           onChange={(_, tab) => setTab(tab)}
           textColor='inherit'
           className={styles.tabs}
@@ -105,8 +98,7 @@ const FileStorage = React.forwardRef((props, ref) => {
           <Tab label='Добавленные' value='added' />
           <Tab label='Загрузить' value='upload' />
         </Tabs>
-        {
-          tab === 'added' &&
+        {tab === 'added' && (
           <div className={styles.files}>
             <Filters
               packs={packs}
@@ -121,8 +113,8 @@ const FileStorage = React.forwardRef((props, ref) => {
               acceptableType={acceptableType}
             />
           </div>
-        }
-        { tab === 'upload' && <Upload packUUID={packUUID} setTab={setTab} /> }
+        )}
+        {tab === 'upload' && <Upload packUUID={packUUID} setTab={setTab} />}
       </DialogContent>
     </Dialog>
   )

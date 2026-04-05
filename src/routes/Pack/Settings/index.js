@@ -10,28 +10,21 @@ import {
   FormikSelect,
   FormikCheckbox,
   FormikSlider,
-  FormikImageField
+  FormikImageField,
 } from 'components/FormikField'
-import { connect } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import Button from '@mui/material/Button'
-import { useBeforeunload } from 'react-beforeunload'
-import { useHistory, Prompt } from 'react-router-dom'
+import { useBeforeUnload } from '../../../hooks/useBeforeUnload'
+import { useNavigate } from 'react-router'
 import { saveLocalPack } from 'localStorage/localPacks'
-import { initValues, mapPackState } from '../../../utils'
+import { initValues } from '../../../utils'
+import { loadPack } from 'store/packSlice'
 
 const validationSchema = yup.object({
-  logo: yup
-    .string('Добавьте логотип пака'),
-  name: yup
-    .string('Введите название пака')
-    .required('Заполните поле названия'),
-  authors: yup
-    .array()
-    .ensure()
-    .min(1, 'Заполните поле автора')
-    .required('Заполните поле автора'),
-  publisher: yup
-    .string('Введите издателя'),
+  logo: yup.string('Добавьте логотип пака'),
+  name: yup.string('Введите название пака').required('Заполните поле названия'),
+  authors: yup.array().ensure().min(1, 'Заполните поле автора').required('Заполните поле автора'),
+  publisher: yup.string('Введите издателя'),
   difficulty: yup
     .number('Выберите сложность пака')
     .positive()
@@ -39,29 +32,26 @@ const validationSchema = yup.object({
     .max(10)
     .integer('Число должно быть целым')
     .required('Заполните поле сложности'),
-  comment: yup
-    .string('Введите комментарий'),
-  tags: yup
-    .array().ensure(),
-  language: yup
-    .string('Введите язык пака')
-    .required('Заполните поле язык'),
-  over18: yup
-    .bool('Введите ограничения пака')
+  comment: yup.string('Введите комментарий'),
+  tags: yup.array().ensure(),
+  language: yup.string('Введите язык пака').required('Заполните поле язык'),
+  over18: yup.bool('Введите ограничения пака'),
 })
 
 Settings.propTypes = {
   pack: PropTypes.shape(componentsPropTypes),
-  dispatch: PropTypes.func
 }
 
-const removeDuplicates = (cur, i, array) => !array.slice(0, i).some(value => value.toUpperCase() === cur.toUpperCase())
+const removeDuplicates = (cur, i, array) =>
+  !array.slice(0, i).some(value => value.toUpperCase() === cur.toUpperCase())
 
-function Settings(props) {
+function Settings() {
   const [submitting, setSubmitting] = React.useState(false)
   const [tags, setTags] = React.useState([])
-  const history = useHistory()
-  const initialValues = initValues(validationSchema, props.pack)
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const pack = useSelector(state => state.pack)
+  const initialValues = initValues(validationSchema, pack)
 
   React.useEffect(() => {
     fetch('https://sigame.ru/api/tags')
@@ -85,39 +75,23 @@ function Settings(props) {
     validationSchema,
     validateOnChange: false,
     validateOnBlur: false,
-    onSubmit: async (values) => {
+    onSubmit: async values => {
       setSubmitting(true)
-      let pack = { ...props.pack, ...values }
-      await saveLocalPack(pack)
-      props.dispatch({ type: 'pack/load', pack })
-      history.push(`/pack/${pack.uuid}`)
+      let updatedPack = { ...pack, ...values }
+      await saveLocalPack(updatedPack)
+      dispatch(loadPack(updatedPack))
+      navigate(`/pack/${updatedPack.uuid}`)
     },
   })
 
-  useBeforeunload((event) => {
-    if(Object.keys(formik.touched).length) event.preventDefault()
-  })
+  useBeforeUnload(Object.keys(formik.touched).length > 0)
 
   return (
     <div className={styles.container}>
       <form onSubmit={formik.handleSubmit} className={styles.form}>
-        <FormikTextField
-          name='name'
-          formik={formik}
-          label='Название'
-          disabled={submitting}
-        />
-        <FormikAutocomplete
-          name='authors'
-          formik={formik}
-          label='Авторы'
-          disabled={submitting}
-        />
-        <FormikImageField
-          name='logo'
-          formik={formik}
-          label='Логотип'
-        />
+        <FormikTextField name='name' formik={formik} label='Название' disabled={submitting} />
+        <FormikAutocomplete name='authors' formik={formik} label='Авторы' disabled={submitting} />
+        <FormikImageField name='logo' formik={formik} label='Логотип' />
         <FormikTextField
           name='publisher'
           formik={formik}
@@ -129,7 +103,9 @@ function Settings(props) {
           label='Сложность'
           formik={formik}
           disabled={submitting}
-          step={1} min={1} max={10}
+          step={1}
+          min={1}
+          max={10}
         />
         <FormikSelect
           name='language'
@@ -138,7 +114,7 @@ function Settings(props) {
           options={{
             '': 'Не указано',
             'ru-RU': 'Русский (ru-RU)',
-            'en-US': 'Английский (en-US)'
+            'en-US': 'Английский (en-US)',
           }}
           disabled={submitting}
         />
@@ -170,21 +146,27 @@ function Settings(props) {
           Сохранить
         </Button>
       </form>
-      <Prompt
-        when={!!Object.keys(formik.touched).length && !submitting}
-        message='Вы хотите покинуть страницу, не сохраняя изменений?'
-      />
       <div className={styles.info}>
         <ul>
-          <li>Версия XML для описания формата: <span>{format.xmlVersion}</span></li>
-          <li>Кодировка текста в формате: <span>{format.encoding}</span></li>
-          <li>Версия формата: <span>{props.pack.version}</span></li>
-          <li>UUID: <span>{props.pack.uuid}</span></li>
-          <li>Дата создания: <span>{props.pack.date}</span></li>
+          <li>
+            Версия XML для описания формата: <span>{format.xmlVersion}</span>
+          </li>
+          <li>
+            Кодировка текста в формате: <span>{format.encoding}</span>
+          </li>
+          <li>
+            Версия формата: <span>{pack.version}</span>
+          </li>
+          <li>
+            UUID: <span>{pack.uuid}</span>
+          </li>
+          <li>
+            Дата создания: <span>{pack.date}</span>
+          </li>
         </ul>
       </div>
     </div>
   )
 }
 
-export default connect(mapPackState)(Settings)
+export default Settings

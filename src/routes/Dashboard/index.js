@@ -3,33 +3,33 @@ import styles from './styles.module.scss'
 import PropTypes from 'prop-types'
 
 import { Create, Upload, ImportByURL, Loading, Pack } from './packTypes'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { loadLocalPacks } from '../../localStorage/localPacks'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 import PackUploader from './PackUploader'
 
 export default function Dashboard() {
-  return (
-    <LocalPacks />
-  )
+  return <LocalPacks />
 }
 
 export const DashboardContext = React.createContext({})
-export const LocalPacks = connect(state => ({ dashboard: state.dashboard }))(props => {
+export function LocalPacks() {
+  const dashboard = useSelector(state => state.dashboard)
   const [savedLocalPacks, setSavedLocalPacks] = React.useState()
   const packUploaderRef = React.useRef()
 
   const loadPacks = async () => {
     const packsUUID = await loadLocalPacks()
-    const packs = packsUUID
-      .sort((a,b) => a.creationTime - b.creationTime)
+    const packs = packsUUID.sort((a, b) => a.creationTime - b.creationTime)
     setSavedLocalPacks(packs)
   }
 
-  React.useEffect(() => loadPacks(), [])
+  React.useEffect(() => {
+    loadPacks()
+  }, [])
 
   const contextActions = {
-    reloadPacks: () => loadPacks()
+    reloadPacks: () => loadPacks(),
   }
 
   return (
@@ -39,17 +39,18 @@ export const LocalPacks = connect(state => ({ dashboard: state.dashboard }))(pro
           <PackBase type='create' />
           <PackBase type='upload' reloadPacks={loadPacks} />
           <PackBase type='importByURL' packUploaderRef={packUploaderRef} />
-          { props.dashboard?.uploading?.reverse().map(({ name }, i) => <PackBase type='loading' name={name} key={i} />) }
-          { savedLocalPacks
+          {dashboard?.uploading?.reverse().map(({ name }, i) => (
+            <PackBase type='loading' name={name} key={i} />
+          ))}
+          {savedLocalPacks
             ? savedLocalPacks.map(pack => <PackBase type='pack' key={pack.uuid} pack={pack} />)
-            : new Array(5).fill().map((_, i) => <PackBase type='loading' key={i} />)
-          }
+            : new Array(5).fill().map((_, i) => <PackBase type='loading' key={i} />)}
         </div>
         <PackUploader ref={packUploaderRef} />
       </DashboardContext.Provider>
     </div>
   )
-})
+}
 
 PackBase.propTypes = PackSwitch.propTypes = {
   type: PropTypes.oneOf(['create', 'upload', 'pack', 'loading', 'importByURL']),
@@ -65,21 +66,21 @@ PackBase.propTypes = PackSwitch.propTypes = {
 }
 
 function PackBase(props) {
-  return (
-    ['loading', 'upload', 'importByURL'].includes(props.type)
-      ? <PackSwitch {...props} />
-      : <Link to={props.type === 'pack' ? `/pack/${props.pack.uuid}` : `${props.type}`}><PackSwitch {...props} /></Link>
+  return ['loading', 'upload', 'importByURL'].includes(props.type) ? (
+    <PackSwitch {...props} />
+  ) : (
+    <Link to={props.type === 'pack' ? `/pack/${props.pack.uuid}` : `${props.type}`}>
+      <PackSwitch {...props} />
+    </Link>
   )
 }
 
 function PackSwitch(props) {
-  return (
-    {
-      'create': <Create />,
-      'upload': <Upload reloadPacks={props.reloadPacks} />,
-      'importByURL': <ImportByURL packUploaderRef={props.packUploaderRef} />,
-      'loading': <Loading name={props.name} />,
-      'pack': <Pack pack={props.pack} />
-    }[props.type]
-  )
+  return {
+    create: <Create />,
+    upload: <Upload reloadPacks={props.reloadPacks} />,
+    importByURL: <ImportByURL packUploaderRef={props.packUploaderRef} />,
+    loading: <Loading name={props.name} />,
+    pack: <Pack pack={props.pack} />,
+  }[props.type]
 }

@@ -1,4 +1,4 @@
-@import '../../../consts.scss';
+@use '../../../consts' as *;
 
 .toolbar {
   display: flex;
@@ -12,6 +12,24 @@
 
   .delete {
     color: $errorMain;
+  }
+
+  .deleteBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: $errorMain;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
   }
 }
 
@@ -38,6 +56,15 @@ div.table {
       width: 100%;
     }
   }
+
+  .addCell .buttonBase {
+    color: #555;
+    font-size: 1.2rem;
+
+    &:hover {
+      color: #aaa;
+    }
+  }
 }
 
 .heading {
@@ -59,5 +86,24 @@ div.table {
   .strikethrough {
     text-decoration: line-through;
     color: #b1b1b1;
+  }
+}
+
+.addQuestionRow {
+  cursor: pointer;
+
+  .addQuestionCell {
+    padding: 6px;
+  }
+
+  .addQuestionIcon {
+    font-size: 1.4rem;
+    color: #555;
+    vertical-align: middle;
+    transition: color 0.15s;
+  }
+
+  &:hover .addQuestionIcon {
+    color: #aaa;
   }
 }
